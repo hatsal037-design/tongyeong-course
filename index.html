@@ -44,6 +44,8 @@
   .num.ico { background:#fff; color:var(--ink); border:1.5px solid #cfd8e0; border-radius:8px; font-size:12px; }
   .info { flex:1; min-width:0; }
   .nm { font-size:14.5px; font-weight:700; }
+  .star { color:#d5dbe1; cursor:pointer; margin-right:4px; font-size:16px; vertical-align:-1px; }
+  .star.on { color:#f5b301; text-shadow:0 0 4px rgba(245,179,1,.45); }
   .memo { font-size:11.5px; color:var(--sub); margin-top:1px; line-height:1.4; }
   .tagx { font-size:9px; font-weight:700; color:#fff; border-radius:4px; padding:1.5px 5px; margin-left:4px; vertical-align:1.5px; }
   .t-night { background:#4a3f8f; } .t-sunset { background:#d97b28; } .t-boat { background:#3a7ca5; } .t-check { background:#9a4747; }
@@ -185,6 +187,15 @@ const ETCICON = { park:'🅿️', charge:'⚡', };
 const HOME = [34.8555, 128.4225];
 const KEY = 'ty-course-check-v2';
 let checks = JSON.parse(localStorage.getItem(KEY) || '{}');
+const FKEY = 'ty-favs';
+let favs = JSON.parse(localStorage.getItem(FKEY) || '{}');
+function favKey(s){ return s[1] || s[0]; }
+function favToggle(k){
+  favs[k] = !favs[k];
+  if (!favs[k]) delete favs[k];
+  localStorage.setItem(FKEY, JSON.stringify(favs));
+  render();
+}
 let curDay = 1, curCat = 'spot';
 
 const map = L.map('map', {zoomControl:false, attributionControl:false});
@@ -226,7 +237,7 @@ function render(){
     row.innerHTML = `
       <div class="chk" onclick="toggle('${id}',this)">✓</div>
       ${badgeHtml}
-      <div class="info"><div class="nm">${s[0]}${tag}</div><div class="memo">${s[4]}</div></div>
+      <div class="info"><div class="nm"><span class="star${favs[favKey(s)]?' on':''}" onclick="favToggle('${favKey(s)}')">★</span>${s[0]}${tag}</div><div class="memo">${s[4]}</div></div>
       <div class="btns">
         ${s[1] ? `<a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>` : ''}
         <a class="b-nvr" href="https://map.naver.com/p/search/${encodeURIComponent(s[7])}">네이버</a>
@@ -253,11 +264,13 @@ function render(){
     else if (cat==='cafe') { label='☕'; bg='#fff'; txtc='#1a2b3c'; radius='8px'; }
     else if (s[6]) { label='＋'; bg='#a5b1bd'; }
     else { label=s._n; bg=cfg.color; }
-    const size = active ? 27 : 18;
-    const fs = active ? 12.5 : 9;
-    const bd = active ? `3px solid ${(cat==='spot') ? '#fff' : cfg.color}` : '1.5px solid rgba(120,135,150,.6)';
-    const op = active ? 1 : 0.55;
-    const sh = active ? '0 2px 6px rgba(0,0,0,.45)' : '0 1px 2px rgba(0,0,0,.25)';
+    const fav = !!favs[favKey(s)];
+    const size = fav ? (active ? 30 : 24) : (active ? 27 : 18);
+    const fs = active ? 12.5 : (fav ? 11 : 9);
+    let bd = active ? `3px solid ${(cat==='spot') ? '#fff' : cfg.color}` : '1.5px solid rgba(120,135,150,.6)';
+    let op = active ? 1 : 0.55;
+    let sh = active ? '0 2px 6px rgba(0,0,0,.45)' : '0 1px 2px rgba(0,0,0,.25)';
+    if (fav) { bd = '3px solid #f5b301'; sh = '0 0 0 3px rgba(245,179,1,.35), 0 2px 6px rgba(0,0,0,.4)'; op = Math.max(op, 0.9); }
     L.marker([s[2],s[3]], {icon: L.divIcon({
       html:`<div style="width:${size}px;height:${size}px;border-radius:${radius};background:${bg};color:${txtc};font-weight:800;font-size:${fs}px;display:flex;align-items:center;justify-content:center;border:${bd};box-shadow:${sh};opacity:${op}">${label}</div>`,
       className:'', iconSize:[size,size], iconAnchor:[size/2,size/2]})}).addTo(layer)
