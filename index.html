@@ -11,7 +11,7 @@
   :root { --d1:#E8604C; --d2:#2B6CB0; --d3:#2F855A; --ink:#1a2b3c; --sub:#5a6b7c; --line:#e6ebf0; --bg:#f6f8fa; }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { font-family:"Apple SD Gothic Neo",-apple-system,sans-serif; color:var(--ink); background:var(--bg);
-         padding-bottom:calc(60px + env(safe-area-inset-bottom)); }
+         padding-bottom:calc(10px + env(safe-area-inset-bottom)); }
   header { padding:calc(12px + env(safe-area-inset-top)) 16px 8px; background:#fff; }
   header h1 { font-size:18px; font-weight:800; letter-spacing:-0.3px; }
   header .sub { font-size:11.5px; color:var(--sub); margin-top:2px; line-height:1.5; }
@@ -23,10 +23,9 @@
   .dtab.on2 { color:var(--d2); border-color:var(--d2); }
   .dtab.on3 { color:var(--d3); border-color:var(--d3); }
 
-  .cattabs { display:flex; background:#fff; border-top:1px solid var(--line); position:fixed; left:0; right:0; bottom:0;
-             z-index:1000; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -2px 10px rgba(0,0,0,.06); }
-  .ctab { flex:1; text-align:center; padding:12px 0 11px; font-size:14px; font-weight:700; color:var(--sub);
-          border-top:3px solid transparent; cursor:pointer; }
+  .cattabs { display:flex; margin:0 12px 10px; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .ctab { flex:1; text-align:center; padding:10px 0 9px; font-size:13.5px; font-weight:700; color:var(--sub);
+          border-bottom:3px solid transparent; cursor:pointer; }
   .ctab.on { color:var(--ink); }
   .ctab.on1 { border-color:var(--d1); } .ctab.on2 { border-color:var(--d2); } .ctab.on3 { border-color:var(--d3); }
 
@@ -75,16 +74,17 @@
 
 <div class="daydesc" id="daydesc"></div>
 <div id="map"></div>
-<div id="list"></div>
-<div class="sup" id="sup"></div>
-
-<footer>지도 핀은 개략 위치 · 내비 = 카카오맵 길안내 바로 실행 · 체크는 자동 저장</footer>
 
 <div class="cattabs">
   <div class="ctab" id="ctab-spot" onclick="setCat('spot')">여행지</div>
   <div class="ctab" id="ctab-food" onclick="setCat('food')">식당</div>
   <div class="ctab" id="ctab-cafe" onclick="setCat('cafe')">카페</div>
+  <div class="ctab" id="ctab-etc" onclick="setCat('etc')">기타</div>
 </div>
+
+<div id="list"></div>
+
+<footer>지도 핀은 개략 위치 · 내비 = 카카오맵 길안내 바로 실행 · 체크는 자동 저장</footer>
 
 <script>
 // [이름, 카카오ID, lat, lng, 메모, 태그, opt, 네이버쿼리]
@@ -112,11 +112,12 @@ const DATA = {
       ['아르세','179984071',34.9110271,128.4172867,'통창 오션뷰 대형카페 — 죽림 북쪽(차 15분)',null,false,'통영 아르세'],
       ['카페 배양장','2012245745',34.8360541,128.3418502,'멍게배양장 개조 오션뷰 — 도산면(차 20분)',null,false,'통영 카페배양장'],
     ],
-    sup:`<b>주차 · 충전</b><br>
-🏠 숙소 무료주차 — 체크인(15시) 후엔 여기 대고 도보 이동이 베스트<br>
-🅿️ <a href="https://place.map.kakao.com/1047873512">중앙전통시장 공영주차장</a> — 체크인 전 도착 시<br>
-🅿️ <a href="https://place.map.kakao.com/604298357">시민문화회관 주차장</a> — 디피랑 앞 (도보 이동 시 불필요)<br>
-⚡ <a href="https://place.map.kakao.com/1330903185">통영시청2청사 충전소</a> — 필요 시`
+    etc:[
+      ['숙소 주차장 (무료)',null,34.8555,128.4225,'체크인 15시 후엔 여기 대고 도보 이동이 베스트','park',false,'통영 안개2길 33'],
+      ['중앙전통시장 공영주차장','1047873512',34.8458330,128.4232348,'체크인 전 도착 시 — 동피랑·강구안 도보권','park',false,'통영 중앙시장 공영주차장'],
+      ['통영시민문화회관 주차장','604298357',34.8415346,128.4285394,'디피랑 바로 앞 (도보 이동 시 불필요)','park',false,'통영시민문화회관 주차장'],
+      ['통영시청2청사 전기차충전소','1330903185',34.8560340,128.4304476,'시내권 공공 충전 — 필요 시','charge',false,'통영시청 전기차충전소'],
+    ],
   },
   2: {
     color:'#2B6CB0',
@@ -140,10 +141,11 @@ const DATA = {
       ['부엔 BUEN','1267451521',34.8248457,128.4152970,'에그타르트·휘낭시에 — 루지 근처, 품절 주의',null,false,'통영 부엔'],
       ['미스티크 라운지','511149366',34.7759118,128.3959083,'오션뷰 — 달아공원 가는 길',null,false,'통영 미스티크'],
     ],
-    sup:`<b>주차 · 충전</b><br>
-🅿️⚡ <a href="https://place.map.kakao.com/567049636">케이블카파크랜드 주차장 충전소</a> — 타는 동안 충전<br>
-⚡ <a href="https://place.map.kakao.com/80082676">케이블카 제2주차장 충전소</a> — 자리 없을 때 백업<br>
-🏠 밤엔 시내 숙소 복귀 — 숙소 무료주차`
+    etc:[
+      ['케이블카파크랜드 주차장 충전소','567049636',34.8257290,128.4233303,'케이블카·루지 공용 주차장 — 타는 동안 충전 (메인)','charge',false,'통영케이블카 전기차충전소'],
+      ['케이블카 제2주차장 충전소','80082676',34.8264662,128.4268756,'본주차장 자리 없을 때 백업','charge',false,'케이블카제2주차장 전기차충전소'],
+      ['숙소 주차장 (무료)',null,34.8555,128.4225,'밤엔 시내 숙소 복귀 — 무료주차','park',false,'통영 안개2길 33'],
+    ],
   },
   3: {
     color:'#2F855A',
@@ -169,15 +171,17 @@ const DATA = {
       ['심해','666082526',34.9665739,128.7058720,'루프탑 베이커리 — 매미성 도보 8분',null,false,'거제 카페 심해'],
       ['오송웨이브','1143144142',34.8159445,128.5854121,'정원 피크닉 대형카페',null,false,'거제 오송웨이브'],
     ],
-    sup:`<b>주차 · 충전</b><br>
-🅿️ <a href="https://place.map.kakao.com/749303601">학동주차장</a> — 몽돌해변 앞<br>
-🅿️ <a href="https://place.map.kakao.com/1653556241">매미성 주차장</a> — 시방리 832-3 (맹종죽은 자체 주차장)<br>
-⚡ <a href="https://place.map.kakao.com/900514935">장목면사무소 충전소</a> — 매미성 근처<br>
-⚡ <a href="https://place.map.kakao.com/628667848">거제휴게소 충전소</a> — 귀갓길 충전 겸 휴식`
+    etc:[
+      ['한려해상국립공원 학동주차장','749303601',34.7755380,128.6414210,'몽돌해변 앞','park',false,'학동 주차장'],
+      ['매미성 주차장','1653556241',34.9660677,128.7041842,'장목면 시방리 832-3 (맹종죽은 자체 주차장)','park',false,'매미성 주차장'],
+      ['장목면사무소 전기차충전소','900514935',34.9865922,128.6823836,'매미성 근처 공공 충전','charge',false,'장목면사무소 전기차충전소'],
+      ['거제휴게소 전기차충전소','628667848',34.9733387,128.6928689,'귀갓길 충전 겸 휴식','charge',false,'거제휴게소 전기차충전소'],
+    ],
   },
 };
 const TAG = { night:['야간','t-night'], sunset:['일몰','t-sunset'], boat:['배편','t-boat'], check:['확인필요','t-check'] };
 const CATICON = { food:'🍴', cafe:'☕' };
+const ETCICON = { park:'🅿️', charge:'⚡', };
 const HOME = [34.8555, 128.4225];
 const KEY = 'ty-course-check-v2';
 let checks = JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -200,11 +204,10 @@ function render(){
   document.body.style.setProperty('--accent', cfg.color);
 
   [1,2,3].forEach(i=>{ document.getElementById('dtab'+i).className = 'dtab' + (i===curDay ? ' on'+i : ''); });
-  ['spot','food','cafe'].forEach(c=>{
+  ['spot','food','cafe','etc'].forEach(c=>{
     document.getElementById('ctab-'+c).className = 'ctab' + (c===curCat ? ' on on'+curDay : '');
   });
   document.getElementById('daydesc').textContent = cfg.desc;
-  document.getElementById('sup').innerHTML = cfg.sup;
 
   // 리스트
   const list = document.getElementById('list');
@@ -215,16 +218,17 @@ function render(){
     const row = document.createElement('div');
     row.className = 'stop' + (checks[id] ? ' done' : '');
     row.style.setProperty('--accent', cfg.color);
-    const tag = s[5] ? `<span class="tagx ${TAG[s[5]][1]}">${TAG[s[5]][0]}</span>` : '';
+    const tag = (s[5] && TAG[s[5]]) ? `<span class="tagx ${TAG[s[5]][1]}">${TAG[s[5]][0]}</span>` : '';
     let badgeHtml;
     if (curCat==='spot') badgeHtml = `<div class="num${s[6]?' opt':''}">${s[6]?'＋':++n}</div>`;
+    else if (curCat==='etc') badgeHtml = `<div class="num ico">${s[1]===null?'🏠':ETCICON[s[5]]||'🅿️'}</div>`;
     else badgeHtml = `<div class="num ico">${CATICON[curCat]}</div>`;
     row.innerHTML = `
       <div class="chk" onclick="toggle('${id}',this)">✓</div>
       ${badgeHtml}
       <div class="info"><div class="nm">${s[0]}${tag}</div><div class="memo">${s[4]}</div></div>
       <div class="btns">
-        <a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>
+        ${s[1] ? `<a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>` : ''}
         <a class="b-nvr" href="https://map.naver.com/p/search/${encodeURIComponent(s[7])}">네이버</a>
         <a class="b-nav" href="kakaomap://route?ep=${s[2]},${s[3]}&by=CAR">내비</a>
       </div>`;
@@ -241,13 +245,14 @@ function render(){
   let m = 0;
   stops.forEach((s)=>{
     let label, bg, shape, border='#fff';
-    if (curCat!=='spot') { label=CATICON[curCat]; bg='#fff'; shape='border-radius:8px;color:#1a2b3c;'; border='#7a8a99'; }
+    if (curCat==='etc') { label=(s[1]===null?'🏠':ETCICON[s[5]]||'🅿️'); bg='#fff'; shape='border-radius:8px;color:#1a2b3c;'; border='#7a8a99'; }
+    else if (curCat!=='spot') { label=CATICON[curCat]; bg='#fff'; shape='border-radius:8px;color:#1a2b3c;'; border='#7a8a99'; }
     else if (s[6]) { label='＋'; bg='#a5b1bd'; shape='border-radius:50%;color:#fff;'; }
     else { label=++m; bg=cfg.color; shape='border-radius:50%;color:#fff;'; }
     L.marker([s[2],s[3]], {icon: L.divIcon({
       html:`<div style="width:24px;height:24px;${shape}background:${bg};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid ${border};box-shadow:0 1px 4px rgba(0,0,0,.4)">${label}</div>`,
       className:'', iconSize:[24,24], iconAnchor:[12,12]})}).addTo(layer)
-      .on('click',()=>location.href='https://place.map.kakao.com/'+s[1]);
+      .on('click',()=>{ if(s[1]) location.href='https://place.map.kakao.com/'+s[1]; });
   });
   if (curCat==='spot') {
     const pts = stops.filter(s=>!s[6]).map(s=>[s[2],s[3]]);
