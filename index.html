@@ -35,6 +35,8 @@
   .stop { display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid var(--line); }
   .stop:last-child { border-bottom:none; }
   .stop.done .nm { text-decoration:line-through; color:#a5b1bd; }
+  .stop.sel { background:#f2f7ff; box-shadow:inset 3px 0 0 var(--accent); }
+  .info { cursor:pointer; }
   .chk { width:24px; height:24px; border-radius:50%; border:2px solid #cfd8e0; flex:none; display:flex;
          align-items:center; justify-content:center; font-size:13px; color:#fff; cursor:pointer; }
   .stop.done .chk { border-color:transparent; background:var(--accent); }
@@ -210,6 +212,12 @@ const DEFAULT_NOTES = {
   '10696544': '연주: 한번도 안 먹어본 메뉴!! 둘째날이나 셋째날 아침으로 먹을까',
 };
 let notes = Object.assign({}, DEFAULT_NOTES, JSON.parse(localStorage.getItem(NKEY) || '{}'));
+let selKey = null;
+function selPlace(k, lat, lng){
+  selKey = (selKey === k) ? null : k;
+  render();
+  if (selKey) map.panTo([lat, lng]);
+}
 function noteEdit(k, name){
   const v = prompt(name + ' 메모', notes[k] || '');
   if (v === null) return;
@@ -248,7 +256,7 @@ function render(){
   stops.forEach((s,i)=>{
     const id = curDay+'-'+curCat+'-'+s[1];
     const row = document.createElement('div');
-    row.className = 'stop' + (checks[id] ? ' done' : '');
+    row.className = 'stop' + (checks[id] ? ' done' : '') + (favKey(s)===selKey ? ' sel' : '');
     row.style.setProperty('--accent', cfg.color);
     const tag = (s[5] && TAG[s[5]]) ? `<span class="tagx ${TAG[s[5]][1]}">${TAG[s[5]][0]}</span>` : '';
     let badgeHtml;
@@ -258,7 +266,7 @@ function render(){
     row.innerHTML = `
       <div class="chk" onclick="toggle('${id}',this)">✓</div>
       ${badgeHtml}
-      <div class="info"><div class="nm"><span class="star${favs[favKey(s)]?' on':''}" onclick="favToggle('${favKey(s)}')">★</span>${s[0]}${tag}</div><div class="memo">${s[4]}</div>${notes[favKey(s)] ? `<div class="unote">📝 ${notes[favKey(s)]}</div>` : ''}</div>
+      <div class="info" onclick="selPlace('${favKey(s)}', ${s[2]}, ${s[3]})"><div class="nm"><span class="star${favs[favKey(s)]?' on':''}" onclick="favToggle('${favKey(s)}')">★</span>${s[0]}${tag}</div><div class="memo">${s[4]}</div>${notes[favKey(s)] ? `<div class="unote">📝 ${notes[favKey(s)]}</div>` : ''}</div>
       <div class="btns">
         ${s[1] ? `<a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>` : ''}
         <a class="b-nvr" href="https://map.naver.com/p/search/${encodeURIComponent(s[7])}">네이버</a>
@@ -303,9 +311,27 @@ function render(){
   const rpts = cfg.spot.filter(s=>!s[6]).map(s=>[s[2],s[3]]);
   L.polyline(rpts, {color:cfg.color, weight:3, opacity:(curCat==='spot'?0.85:0.25), dashArray:'6 6'}).addTo(layer);
 
-  // 비선택 카테고리 먼저(아래), 선택 카테고리 나중(위)
-  ['spot','food','cafe','etc'].filter(c=>c!==curCat).forEach(c=>{ (cfg[c]||[]).forEach(s=>drawMarker(s,c,false)); });
-  (cfg[curCat]||[]).forEach(s=>drawMarker(s,curCat,true));
+  function drawSelected(s, cat){
+    let label, bg, txtc='#fff';
+    if (cat==='etc') { label=(s[1]===null?'🏠':ETCICON[s[5]]||'🅿️'); bg='#fff'; txtc='#1a2b3c'; }
+    else if (cat==='food') { label='🍴'; bg='#fff'; txtc='#1a2b3c'; }
+    else if (cat==='cafe') { label='☕'; bg='#fff'; txtc='#1a2b3c'; }
+    else if (s[6]) { label='＋'; bg='#a5b1bd'; }
+    else { label=s._n!==undefined?s._n:'•'; bg=cfg.color; }
+    const html = `<div style="display:flex;flex-direction:column;align-items:center;width:150px;">
+      <div style="max-width:146px;background:${cfg.color};color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.35);margin-bottom:3px;">📌 ${s[0]}</div>
+      <div style="width:30px;height:30px;border-radius:${(cat==='spot')?'50%':'9px'};background:${bg};color:${txtc};font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;border:3.5px solid #fff;box-shadow:0 0 0 3px ${cfg.color}66, 0 3px 8px rgba(0,0,0,.5);">${label}</div>
+    </div>`;
+    L.marker([s[2],s[3]], {icon: L.divIcon({html, className:'', iconSize:[150,58], iconAnchor:[75,43]}), zIndexOffset:1000}).addTo(layer)
+      .on('click',()=>{ if(s[1]) location.href='https://place.map.kakao.com/'+s[1]; });
+  }
+
+  // 비선택 카테고리 먼저(아래), 선택 카테고리 나중(위), 탭 선택 장소는 이름표와 함께 최상단
+  let selStop = null, selCat = null;
+  ['spot','food','cafe','etc'].forEach(c=>{ (cfg[c]||[]).forEach(x=>{ if(favKey(x)===selKey){ selStop=x; selCat=c; } }); });
+  ['spot','food','cafe','etc'].filter(c=>c!==curCat).forEach(c=>{ (cfg[c]||[]).forEach(s=>{ if(favKey(s)!==selKey) drawMarker(s,c,false); }); });
+  (cfg[curCat]||[]).forEach(s=>{ if(favKey(s)!==selKey) drawMarker(s,curCat,true); });
+  if (selStop) drawSelected(selStop, selCat);
 
   let boundPts = [];
   ['spot','food','cafe','etc'].forEach(c=>{
