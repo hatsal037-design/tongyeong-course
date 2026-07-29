@@ -200,11 +200,20 @@ function favToggle(k){
   render();
 }
 const NKEY = 'ty-notes';
-let notes = JSON.parse(localStorage.getItem(NKEY) || '{}');
+const DEFAULT_NOTES = {
+  '1956555086': '연주: 저녁으로 딱이다',
+  '115499738': '연주: 몽가.. 비릴 것 같은 것만 있어서 덜 땡김',
+  '18329404': '연주: 한 끼보단 맛보기로 하나 사서 나눠먹기. 충무김밥이랑 같이 포장해서 먹으면 좋을듯!',
+  '179984071': '연주: 수국 이뿌다',
+  '1267451521': '연주: 디저트 포장만 해가도 될듯',
+  '8608591': '연주: 원조 충무김밥 자셔봐야지!! 디저트랑 같이 포장해서 바다 가서 먹어도 될듯',
+  '10696544': '연주: 한번도 안 먹어본 메뉴!! 둘째날이나 셋째날 아침으로 먹을까',
+};
+let notes = Object.assign({}, DEFAULT_NOTES, JSON.parse(localStorage.getItem(NKEY) || '{}'));
 function noteEdit(k, name){
   const v = prompt(name + ' 메모', notes[k] || '');
   if (v === null) return;
-  if (v.trim() === '') delete notes[k]; else notes[k] = v.trim();
+  notes[k] = v.trim();
   localStorage.setItem(NKEY, JSON.stringify(notes));
   render();
 }
