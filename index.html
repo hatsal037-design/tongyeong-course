@@ -91,7 +91,7 @@
 
 <div id="list"></div>
 
-<footer>지도 핀은 개략 위치 · 내비 = 카카오내비 앱 바로 실행(미설치 시 카카오맵) · 체크는 자동 저장</footer>
+<footer>지도 핀은 개략 위치 · 내비 = 카카오맵 길안내 바로 실행 · 체크는 자동 저장</footer>
 
 <script>
 // [이름, 카카오ID, lat, lng, 메모, 태그, opt, 네이버쿼리]
@@ -228,8 +228,7 @@ const DEFAULT_NOTES = {
 };
 let notes = Object.assign({}, DEFAULT_NOTES, JSON.parse(localStorage.getItem(NKEY) || '{}'));
 function goNavi(lat, lng, name){
-  location.href = 'kakaonavi://navigate?name=' + encodeURIComponent(name) + '&coord_type=wgs84&x=' + lng + '&y=' + lat;
-  setTimeout(()=>{ if (!document.hidden) location.href = 'kakaomap://route?ep=' + lat + ',' + lng + '&by=CAR'; }, 1200);
+  location.href = 'kakaomap://route?ep=' + lat + ',' + lng + '&by=CAR';
 }
 let selKey = null;
 function selPlace(k, lat, lng){
