@@ -210,7 +210,8 @@ function initMap(d){
   L.polyline(pts, {color:cfg.color, weight:3, opacity:.85, dashArray:'6 6'}).addTo(m);
   const boundPts = cfg.stops.map(s=>[s[2],s[3]]);
   if (d===1) boundPts.push(HOME);
-  m.fitBounds(L.latLngBounds(boundPts).pad(0.2));
+  m._fitB = L.latLngBounds(boundPts).pad(0.2);
+  m.fitBounds(m._fitB);
   maps[d] = m;
 }
 function show(d){
@@ -218,7 +219,7 @@ function show(d){
     document.getElementById('day'+i).classList.toggle('show', i===d);
     document.getElementById('tab'+i).className = 'tab' + (i===d ? ' on'+i : '');
   });
-  setTimeout(()=>{ initMap(d); maps[d].invalidateSize(); }, 50);
+  setTimeout(()=>{ initMap(d); maps[d].invalidateSize(); if (maps[d]._fitB) maps[d].fitBounds(maps[d]._fitB); }, 120);
 }
 [1,2,3].forEach(build);
 // 오늘 날짜 기준 자동 탭 선택
