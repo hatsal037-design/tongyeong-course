@@ -265,12 +265,12 @@ function render(){
     else if (s[6]) { label='＋'; bg='#a5b1bd'; }
     else { label=s._n; bg=cfg.color; }
     const fav = !!favs[favKey(s)];
-    const size = fav ? (active ? 30 : 24) : (active ? 27 : 18);
-    const fs = active ? 12.5 : (fav ? 11 : 9);
-    let bd = active ? `3px solid ${(cat==='spot') ? '#fff' : cfg.color}` : '1.5px solid rgba(120,135,150,.6)';
-    let op = active ? 1 : 0.55;
-    let sh = active ? '0 2px 6px rgba(0,0,0,.45)' : '0 1px 2px rgba(0,0,0,.25)';
-    if (fav) { bd = '3px solid #f5b301'; sh = '0 0 0 3px rgba(245,179,1,.35), 0 2px 6px rgba(0,0,0,.4)'; op = Math.max(op, 0.9); }
+    const size = fav ? (active ? 31 : 26) : (active ? 29 : 22);
+    const fs = active ? 13 : 11;
+    let bd = active ? '3.5px solid #fff' : '1.5px solid rgba(120,135,150,.5)';
+    let op = active ? 1 : 0.85;
+    let sh = active ? '0 0 0 2px rgba(0,0,0,.15), 0 3px 8px rgba(0,0,0,.5)' : '0 1px 3px rgba(0,0,0,.3)';
+    if (fav) { bd = (active?'3.5px':'3px') + ' solid #f5b301'; sh = '0 0 0 3px rgba(245,179,1,.35), 0 2px 6px rgba(0,0,0,.4)'; op = 1; }
     L.marker([s[2],s[3]], {icon: L.divIcon({
       html:`<div style="width:${size}px;height:${size}px;border-radius:${radius};background:${bg};color:${txtc};font-weight:800;font-size:${fs}px;display:flex;align-items:center;justify-content:center;border:${bd};box-shadow:${sh};opacity:${op}">${label}</div>`,
       className:'', iconSize:[size,size], iconAnchor:[size/2,size/2]})}).addTo(layer)
@@ -285,11 +285,16 @@ function render(){
   ['spot','food','cafe','etc'].filter(c=>c!==curCat).forEach(c=>{ (cfg[c]||[]).forEach(s=>drawMarker(s,c,false)); });
   (cfg[curCat]||[]).forEach(s=>drawMarker(s,curCat,true));
 
-  let boundPts = stops.filter(s=>!s[6]).map(s=>[s[2],s[3]]);
-  if (!boundPts.length) boundPts = stops.map(s=>[s[2],s[3]]);
-  if (curDay===1 && curCat==='spot') boundPts = boundPts.concat([HOME]);
+  let boundPts = [];
+  ['spot','food','cafe','etc'].forEach(c=>{
+    (cfg[c]||[]).forEach(x=>{ if(!x[6] && x[5]!=='boat') boundPts.push([x[2],x[3]]); });
+  });
+  if (curDay===1 || curDay===2) boundPts.push(HOME);
   map.invalidateSize();
-  map.fitBounds(L.latLngBounds(boundPts).pad(0.2));
+  if (window._lastDay !== curDay) {
+    map.fitBounds(L.latLngBounds(boundPts).pad(0.12));
+    window._lastDay = curDay;
+  }
 }
 
 function setDay(d){ curDay = d; render(); }
