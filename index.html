@@ -235,29 +235,43 @@ function render(){
     list.appendChild(row);
   });
 
-  // 지도
+  // 지도 — 모든 카테고리 표시, 선택 카테고리만 강조
   layer.clearLayers();
   if (curDay===1 || curDay===2) {
     L.marker(HOME, {icon: L.divIcon({
       html:'<div style="width:26px;height:26px;border-radius:8px;background:#1a2b3c;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)">🏠</div>',
       className:'', iconSize:[26,26], iconAnchor:[13,13]})}).addTo(layer);
   }
-  let m = 0;
-  stops.forEach((s)=>{
-    let label, bg, shape, border='#fff';
-    if (curCat==='etc') { label=(s[1]===null?'🏠':ETCICON[s[5]]||'🅿️'); bg='#fff'; shape='border-radius:8px;color:#1a2b3c;'; border='#7a8a99'; }
-    else if (curCat!=='spot') { label=CATICON[curCat]; bg='#fff'; shape='border-radius:8px;color:#1a2b3c;'; border='#7a8a99'; }
-    else if (s[6]) { label='＋'; bg='#a5b1bd'; shape='border-radius:50%;color:#fff;'; }
-    else { label=++m; bg=cfg.color; shape='border-radius:50%;color:#fff;'; }
+  // 여행지 번호 미리 계산
+  let sn = 0;
+  cfg.spot.forEach(s=>{ s._n = s[6] ? '＋' : ++sn; });
+
+  function drawMarker(s, cat, active){
+    let label, bg, txtc='#fff', radius='50%';
+    if (cat==='etc') { label=(s[1]===null?'🏠':ETCICON[s[5]]||'🅿️'); bg='#fff'; txtc='#1a2b3c'; radius='8px'; }
+    else if (cat==='food') { label='🍴'; bg='#fff'; txtc='#1a2b3c'; radius='8px'; }
+    else if (cat==='cafe') { label='☕'; bg='#fff'; txtc='#1a2b3c'; radius='8px'; }
+    else if (s[6]) { label='＋'; bg='#a5b1bd'; }
+    else { label=s._n; bg=cfg.color; }
+    const size = active ? 27 : 18;
+    const fs = active ? 12.5 : 9;
+    const bd = active ? `3px solid ${(cat==='spot') ? '#fff' : cfg.color}` : '1.5px solid rgba(120,135,150,.6)';
+    const op = active ? 1 : 0.55;
+    const sh = active ? '0 2px 6px rgba(0,0,0,.45)' : '0 1px 2px rgba(0,0,0,.25)';
     L.marker([s[2],s[3]], {icon: L.divIcon({
-      html:`<div style="width:24px;height:24px;${shape}background:${bg};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid ${border};box-shadow:0 1px 4px rgba(0,0,0,.4)">${label}</div>`,
-      className:'', iconSize:[24,24], iconAnchor:[12,12]})}).addTo(layer)
+      html:`<div style="width:${size}px;height:${size}px;border-radius:${radius};background:${bg};color:${txtc};font-weight:800;font-size:${fs}px;display:flex;align-items:center;justify-content:center;border:${bd};box-shadow:${sh};opacity:${op}">${label}</div>`,
+      className:'', iconSize:[size,size], iconAnchor:[size/2,size/2]})}).addTo(layer)
       .on('click',()=>{ if(s[1]) location.href='https://place.map.kakao.com/'+s[1]; });
-  });
-  if (curCat==='spot') {
-    const pts = stops.filter(s=>!s[6]).map(s=>[s[2],s[3]]);
-    L.polyline(pts, {color:cfg.color, weight:3, opacity:.85, dashArray:'6 6'}).addTo(layer);
   }
+
+  // 루트 선 (여행지 탭이면 진하게, 아니면 흐리게)
+  const rpts = cfg.spot.filter(s=>!s[6]).map(s=>[s[2],s[3]]);
+  L.polyline(rpts, {color:cfg.color, weight:3, opacity:(curCat==='spot'?0.85:0.25), dashArray:'6 6'}).addTo(layer);
+
+  // 비선택 카테고리 먼저(아래), 선택 카테고리 나중(위)
+  ['spot','food','cafe','etc'].filter(c=>c!==curCat).forEach(c=>{ (cfg[c]||[]).forEach(s=>drawMarker(s,c,false)); });
+  (cfg[curCat]||[]).forEach(s=>drawMarker(s,curCat,true));
+
   let boundPts = stops.filter(s=>!s[6]).map(s=>[s[2],s[3]]);
   if (!boundPts.length) boundPts = stops.map(s=>[s[2],s[3]]);
   if (curDay===1 && curCat==='spot') boundPts = boundPts.concat([HOME]);
