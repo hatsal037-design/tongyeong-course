@@ -55,6 +55,9 @@
   .b-map { background:#FEE500; color:#3c1e1e; }
   .b-nvr { background:#03C75A; color:#fff; }
   .b-nav { background:#2c3a4a; color:#fff; }
+  .b-note { background:#eef1f5; color:#5a6b7c; width:34px; }
+  .b-note.has { background:#fdf0c8; color:#8a6d1a; }
+  .unote { font-size:11.5px; color:#8a6d1a; background:#fdf6e3; border-radius:6px; padding:3px 8px; margin-top:4px; display:inline-block; white-space:pre-wrap; }
   .sup { margin:0 12px 20px; background:#eef3f8; border-radius:12px; padding:11px 13px; font-size:12px; line-height:1.8; }
   .sup b { font-size:10.5px; letter-spacing:1.5px; color:var(--sub); }
   .sup a { color:var(--ink); font-weight:600; }
@@ -196,6 +199,15 @@ function favToggle(k){
   localStorage.setItem(FKEY, JSON.stringify(favs));
   render();
 }
+const NKEY = 'ty-notes';
+let notes = JSON.parse(localStorage.getItem(NKEY) || '{}');
+function noteEdit(k, name){
+  const v = prompt(name + ' 메모', notes[k] || '');
+  if (v === null) return;
+  if (v.trim() === '') delete notes[k]; else notes[k] = v.trim();
+  localStorage.setItem(NKEY, JSON.stringify(notes));
+  render();
+}
 let curDay = 1, curCat = 'spot';
 
 const map = L.map('map', {zoomControl:false, attributionControl:false});
@@ -237,11 +249,12 @@ function render(){
     row.innerHTML = `
       <div class="chk" onclick="toggle('${id}',this)">✓</div>
       ${badgeHtml}
-      <div class="info"><div class="nm"><span class="star${favs[favKey(s)]?' on':''}" onclick="favToggle('${favKey(s)}')">★</span>${s[0]}${tag}</div><div class="memo">${s[4]}</div></div>
+      <div class="info"><div class="nm"><span class="star${favs[favKey(s)]?' on':''}" onclick="favToggle('${favKey(s)}')">★</span>${s[0]}${tag}</div><div class="memo">${s[4]}</div>${notes[favKey(s)] ? `<div class="unote">📝 ${notes[favKey(s)]}</div>` : ''}</div>
       <div class="btns">
         ${s[1] ? `<a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>` : ''}
         <a class="b-nvr" href="https://map.naver.com/p/search/${encodeURIComponent(s[7])}">네이버</a>
         <a class="b-nav" href="kakaomap://route?ep=${s[2]},${s[3]}&by=CAR">내비</a>
+        <a class="b-note${notes[favKey(s)] ? ' has' : ''}" href="javascript:void(0)" onclick="noteEdit('${favKey(s)}', '${s[0].replace(/'/g,'')}')">📝</a>
       </div>`;
     list.appendChild(row);
   });
