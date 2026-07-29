@@ -229,15 +229,12 @@ const DEFAULT_NOTES = {
 };
 let notes = Object.assign({}, DEFAULT_NOTES, JSON.parse(localStorage.getItem(NKEY) || '{}'));
 function goNavi(lat, lng, name){
-  try {
-    if (window.Kakao && Kakao.Navi) {
-      if (!Kakao.isInitialized()) Kakao.init('b211617b5b05256d1850fde3cbc6cf29');
-      Kakao.Navi.start({ name: name, x: parseFloat(lng), y: parseFloat(lat), coordType: 'wgs84' });
-      return;
-    }
-  } catch(e) {}
-  // SDK 실패 시에도 카카오내비 앱을 연다 (목적지 없이 앱만 실행)
-  location.href = 'kakaonavi://';
+  const param = {
+    destination: { name: name, x: Number(lng), y: Number(lat) },
+    option: { coord_type: 'wgs84', vehicle_type: 1, rpoption: 100, route_info: false }
+  };
+  location.href = 'kakaonavi-sdk://navigate?appkey=b211617b5b05256d1850fde3cbc6cf29&apiver=1.0&param='
+    + encodeURIComponent(JSON.stringify(param));
 }
 let selKey = null;
 function selPlace(k, lat, lng){
