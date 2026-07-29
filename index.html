@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>통영·거제 2박3일</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --d1:#E8604C; --d2:#2B6CB0; --d3:#2F855A;
+    --ink:#1a2b3c; --sub:#5a6b7c; --line:#e6ebf0; --bg:#f6f8fa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:"Apple SD Gothic Neo",-apple-system,sans-serif; color:var(--ink); background:var(--bg);
+         padding-bottom:env(safe-area-inset-bottom); }
+  header { padding:calc(14px + env(safe-area-inset-top)) 16px 10px; background:#fff; border-bottom:1px solid var(--line); }
+  header h1 { font-size:19px; font-weight:800; letter-spacing:-0.3px; }
+  header .sub { font-size:12px; color:var(--sub); margin-top:2px; }
+
+  .tabs { display:flex; background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:1000; }
+  .tab { flex:1; text-align:center; padding:11px 0 10px; font-size:14px; font-weight:700; color:var(--sub);
+         border-bottom:3px solid transparent; cursor:pointer; }
+  .tab.on1 { color:var(--d1); border-color:var(--d1); }
+  .tab.on2 { color:var(--d2); border-color:var(--d2); }
+  .tab.on3 { color:var(--d3); border-color:var(--d3); }
+
+  .day { display:none; }
+  .day.show { display:block; }
+  .daydesc { font-size:12.5px; color:var(--sub); padding:10px 16px 0; line-height:1.55; }
+
+  .map { height:290px; margin:10px 12px; border-radius:12px; border:1px solid var(--line); }
+
+  .list { margin:0 12px 10px; background:#fff; border-radius:12px; border:1px solid var(--line); overflow:hidden; }
+  .stop { display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid var(--line); }
+  .stop:last-child { border-bottom:none; }
+  .stop.done .nm { text-decoration:line-through; color:#a5b1bd; }
+  .chk { width:24px; height:24px; border-radius:50%; border:2px solid #cfd8e0; flex:none; display:flex;
+         align-items:center; justify-content:center; font-size:13px; color:#fff; cursor:pointer; }
+  .stop.done .chk { border-color:transparent; }
+  .d1p .stop.done .chk { background:var(--d1); } .d2p .stop.done .chk { background:var(--d2); } .d3p .stop.done .chk { background:var(--d3); }
+  .num { width:22px; height:22px; border-radius:50%; color:#fff; font-size:12px; font-weight:800; flex:none;
+         display:flex; align-items:center; justify-content:center; }
+  .d1p .num { background:var(--d1); } .d2p .num { background:var(--d2); } .d3p .num { background:var(--d3); }
+  .num.opt { background:#a5b1bd; }
+  .info { flex:1; min-width:0; }
+  .nm { font-size:14.5px; font-weight:700; }
+  .memo { font-size:11.5px; color:var(--sub); margin-top:1px; line-height:1.4; }
+  .tagx { font-size:9px; font-weight:700; color:#fff; border-radius:4px; padding:1.5px 5px; margin-left:4px; vertical-align:1.5px; }
+  .t-night { background:#4a3f8f; } .t-sunset { background:#d97b28; } .t-food { background:#7a8a99; }
+  .btns { display:flex; gap:6px; flex:none; }
+  .btns a { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px;
+            font-size:11px; font-weight:700; text-decoration:none; flex-direction:column; line-height:1.1; }
+  .b-map { background:#FEE500; color:#3c1e1e; }
+  .b-nav { background:#2c3a4a; color:#fff; }
+
+  .sup { margin:0 12px 20px; background:#eef3f8; border-radius:12px; padding:11px 13px; font-size:12px; line-height:1.8; }
+  .sup b { font-size:10.5px; letter-spacing:1.5px; color:var(--sub); }
+  .sup a { color:var(--ink); font-weight:600; }
+  .sup .row { display:flex; gap:6px; align-items:baseline; }
+  .sup .ic { flex:none; }
+
+  footer { text-align:center; font-size:10.5px; color:#a5b1bd; padding:6px 0 26px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>통영·거제 2박3일 🌊</h1>
+  <div class="sub">7/31(금) 07:00 쏘카 픽업 → 8/2(일) 23:30 반납 · 아이오닉6<br>🏠 숙소 "통영시의 방" 401호 · 안개2길 33 · 강구안 도보 10분 · 무료주차<br>체크인 7/31 15:00 · 체크아웃 8/2 11:00</div>
+</header>
+
+<div class="tabs">
+  <div class="tab" id="tab1" onclick="show(1)">1일차 · 시내</div>
+  <div class="tab" id="tab2" onclick="show(2)">2일차 · 미륵도</div>
+  <div class="tab" id="tab3" onclick="show(3)">3일차 · 거제</div>
+</div>
+
+<!-- ============ DAY 1 ============ -->
+<div class="day d1p" id="day1">
+  <div class="daydesc">15시 체크인 후 숙소에 주차(무료)하고 도보로 한 바퀴 — 강구안까지 10분. 밤은 디피랑으로 마무리.</div>
+  <div class="map" id="map1"></div>
+  <div class="list" id="list1"></div>
+  <div class="sup">
+    <b>주차 · 충전</b>
+    <div class="row"><span class="ic">🏠</span><span>숙소 무료주차 — 체크인(15시) 후엔 여기 대고 도보 이동이 베스트</span></div>
+    <div class="row"><span class="ic">🅿️</span><span><a href="https://place.map.kakao.com/1047873512">중앙전통시장 공영주차장</a> — 체크인 전 도착 시</span></div>
+    <div class="row"><span class="ic">🅿️</span><span><a href="https://place.map.kakao.com/604298357">시민문화회관 주차장</a> — 디피랑 앞 (도보 이동 시 불필요)</span></div>
+    <div class="row"><span class="ic">⚡</span><span><a href="https://place.map.kakao.com/1330903185">통영시청2청사 충전소</a> — 필요 시</span></div>
+  </div>
+</div>
+
+<!-- ============ DAY 2 ============ -->
+<div class="day d2p" id="day2">
+  <div class="daydesc">차량 이동. 케이블카 주차장에 대면서 충전 — 이날이 메인 충전 타이밍. 저녁엔 시내 숙소로 복귀.</div>
+  <div class="map" id="map2"></div>
+  <div class="list" id="list2"></div>
+  <div class="sup">
+    <b>주차 · 충전</b>
+    <div class="row"><span class="ic">🅿️⚡</span><span><a href="https://place.map.kakao.com/567049636">케이블카파크랜드 주차장 충전소</a> — 타는 동안 충전</span></div>
+    <div class="row"><span class="ic">⚡</span><span><a href="https://place.map.kakao.com/80082676">케이블카 제2주차장 충전소</a> — 자리 없을 때 백업</span></div>
+    <div class="row"><span class="ic">🏠</span><span>밤엔 시내 숙소 복귀 — 숙소 무료주차</span></div>
+  </div>
+</div>
+
+<!-- ============ DAY 3 ============ -->
+<div class="day d3p" id="day3">
+  <div class="daydesc">11시 체크아웃 → 거제로 이동(약 1시간). 남부에서 북상, 매미성까지 보고 늦어도 15~16시 출발 → 21~22시 상봉 도착 → 반납 23:30 여유.</div>
+  <div class="map" id="map3"></div>
+  <div class="list" id="list3"></div>
+  <div class="sup">
+    <b>주차 · 충전</b>
+    <div class="row"><span class="ic">🅿️</span><span><a href="https://place.map.kakao.com/749303601">학동주차장</a> — 몽돌해변 앞</span></div>
+    <div class="row"><span class="ic">🅿️</span><span><a href="https://place.map.kakao.com/1653556241">매미성 주차장</a> — 시방리 832-3 (맹종죽은 자체 주차장)</span></div>
+    <div class="row"><span class="ic">⚡</span><span><a href="https://place.map.kakao.com/900514935">장목면사무소 충전소</a> — 매미성 근처</span></div>
+    <div class="row"><span class="ic">⚡</span><span><a href="https://place.map.kakao.com/628667848">거제휴게소 충전소</a> — 귀갓길 충전 겸 휴식</span></div>
+  </div>
+</div>
+
+<footer>지도 핀은 개략 위치 · 길안내는 🧭 버튼(카카오맵 앱) 이용 · 체크는 자동 저장</footer>
+
+<script>
+// [이름, 카카오place ID, lat, lng, 메모, 태그(옵션), opt여부]
+const DAYS = {
+  1: { color:'#E8604C', stops:[
+    ['동피랑 벽화마을','10290301',34.8454,128.4270,'감성카페·소품샵·날개벽화'],
+    ['강구안','12657613',34.8430,128.4235,'항구 산책, 거북선'],
+    ['서피랑마을','11440661',34.8452,128.4155,'맞은편 언덕, 99계단'],
+    ['충렬사','8587587',34.8498,128.4121,'시간 여유 시'],
+    ['충렬초등학교','8103393',34.8490,128.4135,"'사랑의 이해' 촬영지"],
+    ['은하수다찌','2042010879',34.8425,128.4218,'통영식 다찌 술상, 예약 추천','food'],
+    ['디피랑','1842138197',34.8406,128.4295,'남망산 미디어아트 — 걸어서 이동','night'],
+  ]},
+  2: { color:'#2B6CB0', stops:[
+    ['통영케이블카','11657791',34.8266,128.4119,'오전 방문, 미륵산 정상 조망'],
+    ['스카이라인 루지','97760888',34.8245,128.4150,'케이블카 같은 단지'],
+    ['부엔 BUEN','1267451521',34.8410,128.4210,'에그타르트·휘낭시에 (품절 주의)','food'],
+    ['수륙해수욕장','808611960',34.8060,128.3950,"'사랑의 이해' 모래성 장면"],
+    ['달아공원','8620439',34.7647,128.3809,'일몰 시간 맞추기','sunset'],
+    ['클럽ES 통영리조트','17583048',34.7920,128.3700,'선택 — 인생샷 수영장은 투숙객 전용일 수 있음, 확인 후',null,true],
+    ['이순신공원','11807745',34.8551,128.4468,'선택 — 아침에 잠깐',null,true],
+  ]},
+  3: { color:'#2F855A', stops:[
+    ['학동흑진주몽돌해변','25619610',34.7730,128.6524,'남부 먼저, 몽돌 파도소리'],
+    ['거제맹종죽테마공원','17466819',34.9750,128.6480,'대나무숲, 여름에도 선선'],
+    ['매미성','26459481',35.0010,128.6920,'거가대교 근처 — 마지막 코스'],
+    ['민수사 횟집','25117854',35.0080,128.6780,"선택 — '사랑의 이해' 촬영지",'food',true],
+  ]},
+};
+const TAG = { night:['야간','t-night'], sunset:['일몰','t-sunset'], food:['맛집','t-food'] };
+const KEY = 'ty-course-check';
+let checks = JSON.parse(localStorage.getItem(KEY) || '{}');
+const maps = {};
+
+function isFood(s){ return s[5]==='food'; }
+function inRoute(s){ return !isFood(s) && !s[6]; }
+function build(d){
+  const list = document.getElementById('list'+d);
+  let n = 0;
+  DAYS[d].stops.forEach((s,i)=>{
+    const id = d+'-'+i;
+    const row = document.createElement('div');
+    row.className = 'stop' + (checks[id] ? ' done' : '');
+    const tag = s[5] ? `<span class="tagx ${TAG[s[5]][1]}">${TAG[s[5]][0]}</span>` : '';
+    const badge = isFood(s) ? '🍴' : (s[6] ? '＋' : ++n);
+    const badgeCls = (isFood(s) || s[6]) ? ' opt' : '';
+    row.innerHTML = `
+      <div class="chk" onclick="toggle('${id}',this)">✓</div>
+      <div class="num${badgeCls}">${badge}</div>
+      <div class="info"><div class="nm">${s[0]}${tag}</div><div class="memo">${s[4]}</div></div>
+      <div class="btns">
+        <a class="b-map" href="https://place.map.kakao.com/${s[1]}">지도</a>
+        <a class="b-nav" href="kakaomap://place?id=${s[1]}">🧭</a>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+function toggle(id, el){
+  checks[id] = !checks[id];
+  localStorage.setItem(KEY, JSON.stringify(checks));
+  el.parentElement.classList.toggle('done', checks[id]);
+}
+const HOME = [34.8555, 128.4225]; // 숙소 안개2길 33 (대략)
+function initMap(d){
+  if (maps[d]) return;
+  const cfg = DAYS[d];
+  const m = L.map('map'+d, {zoomControl:false, attributionControl:false});
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+  const pts = cfg.stops.filter(inRoute).map(s=>[s[2],s[3]]);
+  if (d===1 || d===2) {
+    L.marker(HOME, {icon: L.divIcon({
+      html:'<div style="width:26px;height:26px;border-radius:8px;background:#1a2b3c;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)">🏠</div>',
+      className:'', iconSize:[26,26], iconAnchor:[13,13]
+    })}).addTo(m);
+  }
+  let n = 0;
+  const ordered = [...cfg.stops.filter(s=>!inRoute(s)), ...cfg.stops.filter(inRoute)];
+  ordered.forEach((s)=>{
+    let label, bg, shape;
+    if (isFood(s)) { label='🍴'; bg='#fff'; shape='border-radius:8px;color:#1a2b3c;font-size:12px;'; }
+    else if (s[6]) { label='＋'; bg='#a5b1bd'; shape='border-radius:50%;color:#fff;'; }
+    else { label=++n; bg=cfg.color; shape='border-radius:50%;color:#fff;'; }
+    L.marker([s[2],s[3]], {icon: L.divIcon({
+      html:`<div style="width:24px;height:24px;${shape}background:${bg};font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid ${isFood(s)?'#7a8a99':'#fff'};box-shadow:0 1px 4px rgba(0,0,0,.4)">${label}</div>`,
+      className:'', iconSize:[24,24], iconAnchor:[12,12]
+    })}).addTo(m).on('click',()=>location.href='https://place.map.kakao.com/'+s[1]);
+  });
+  L.polyline(pts, {color:cfg.color, weight:3, opacity:.85, dashArray:'6 6'}).addTo(m);
+  const boundPts = cfg.stops.map(s=>[s[2],s[3]]);
+  if (d===1) boundPts.push(HOME);
+  m.fitBounds(L.latLngBounds(boundPts).pad(0.2));
+  maps[d] = m;
+}
+function show(d){
+  [1,2,3].forEach(i=>{
+    document.getElementById('day'+i).classList.toggle('show', i===d);
+    document.getElementById('tab'+i).className = 'tab' + (i===d ? ' on'+i : '');
+  });
+  setTimeout(()=>{ initMap(d); maps[d].invalidateSize(); }, 50);
+}
+[1,2,3].forEach(build);
+// 오늘 날짜 기준 자동 탭 선택
+const today = new Date();
+const auto = (today.getMonth()===7-1 && today.getDate()===31) ? 1
+           : (today.getMonth()===8-1 && today.getDate()===1) ? 2
+           : (today.getMonth()===8-1 && today.getDate()===2) ? 3 : 1;
+show(auto);
+</script>
+</body>
+</html>
