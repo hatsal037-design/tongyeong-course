@@ -51,9 +51,10 @@
   .tagx { font-size:9px; font-weight:700; color:#fff; border-radius:4px; padding:1.5px 5px; margin-left:4px; vertical-align:1.5px; }
   .t-night { background:#4a3f8f; } .t-sunset { background:#d97b28; } .t-food { background:#7a8a99; }
   .btns { display:flex; gap:6px; flex:none; }
-  .btns a { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px;
-            font-size:11px; font-weight:700; text-decoration:none; flex-direction:column; line-height:1.1; }
+  .btns a { display:flex; align-items:center; justify-content:center; width:40px; height:38px; border-radius:10px;
+            font-size:10px; font-weight:700; text-decoration:none; flex-direction:column; line-height:1.1; }
   .b-map { background:#FEE500; color:#3c1e1e; }
+  .b-nvr { background:#03C75A; color:#fff; }
   .b-nav { background:#2c3a4a; color:#fff; }
 
   .sup { margin:0 12px 20px; background:#eef3f8; border-radius:12px; padding:11px 13px; font-size:12px; line-height:1.8; }
@@ -119,34 +120,34 @@
   </div>
 </div>
 
-<footer>지도 핀은 개략 위치 · 길안내는 🧭 버튼(카카오맵 앱) 이용 · 체크는 자동 저장</footer>
+<footer>지도 핀은 개략 위치 · 내비 버튼 = 카카오맵 길안내 바로 실행 · 체크는 자동 저장</footer>
 
 <script>
 // [이름, 카카오place ID, lat, lng, 메모, 태그(옵션), opt여부]
 const DAYS = {
   1: { color:'#E8604C', stops:[
-    ['동피랑 벽화마을','10290301',34.8454,128.4270,'감성카페·소품샵·날개벽화'],
-    ['강구안','12657613',34.8430,128.4235,'항구 산책, 거북선'],
-    ['서피랑마을','11440661',34.8452,128.4155,'맞은편 언덕, 99계단'],
-    ['충렬사','8587587',34.8498,128.4121,'시간 여유 시'],
-    ['충렬초등학교','8103393',34.8490,128.4135,"'사랑의 이해' 촬영지"],
-    ['은하수다찌','2042010879',34.8425,128.4218,'통영식 다찌 술상, 예약 추천','food'],
-    ['디피랑','1842138197',34.8406,128.4295,'남망산 미디어아트 — 걸어서 이동','night'],
+    ['동피랑 벽화마을','10290301',34.8453056,128.4276250,'감성카페·소품샵·날개벽화',null,false,'통영 동피랑'],
+    ['강구안','12657613',34.8434207,128.4244964,'항구 산책, 거북선',null,false,'통영 강구안'],
+    ['서피랑마을','11440661',34.8443645,128.4202446,'맞은편 언덕, 99계단',null,false,'통영 서피랑'],
+    ['충렬사','8587587',34.8469890,128.4174778,'시간 여유 시',null,false,'통영 충렬사'],
+    ['충렬초등학교','8103393',34.8475959,128.4164430,"'사랑의 이해' 촬영지",null,false,'통영 충렬초등학교'],
+    ['은하수다찌','2042010879',34.8420363,128.4229595,'통영식 다찌 술상, 예약 추천','food',false,'통영 은하수다찌'],
+    ['디피랑','1842138197',34.8420617,128.4284785,'남망산 미디어아트 — 걸어서 이동','night',false,'통영 디피랑'],
   ]},
   2: { color:'#2B6CB0', stops:[
-    ['통영케이블카','11657791',34.8266,128.4119,'오전 방문, 미륵산 정상 조망'],
-    ['스카이라인 루지','97760888',34.8245,128.4150,'케이블카 같은 단지'],
-    ['부엔 BUEN','1267451521',34.8410,128.4210,'에그타르트·휘낭시에 (품절 주의)','food'],
-    ['수륙해수욕장','808611960',34.8060,128.3950,"'사랑의 이해' 모래성 장면"],
-    ['달아공원','8620439',34.7647,128.3809,'일몰 시간 맞추기','sunset'],
-    ['클럽ES 통영리조트','17583048',34.7920,128.3700,'선택 — 인생샷 수영장은 투숙객 전용일 수 있음, 확인 후',null,true],
-    ['이순신공원','11807745',34.8551,128.4468,'선택 — 아침에 잠깐',null,true],
+    ['통영케이블카','11657791',34.8268816,128.4252739,'오전 방문, 미륵산 정상 조망',null,false,'통영케이블카'],
+    ['스카이라인 루지','97760888',34.8243747,128.4241421,'케이블카 같은 단지',null,false,'스카이라인루지 통영'],
+    ['부엔 BUEN','1267451521',34.8248457,128.4152970,'에그타르트·휘낭시에 — 루지 근처, 품절 주의','food',false,'통영 부엔'],
+    ['수륙해수욕장','808611960',34.8198820,128.4398159,"'사랑의 이해' 모래성 장면",null,false,'통영 수륙해수욕장'],
+    ['달아공원','8620439',34.7691638,128.3992680,'일몰 시간 맞추기','sunset',false,'통영 달아공원'],
+    ['클럽ES 통영리조트','17583048',34.7651801,128.4098826,'선택 — 수영장 투숙객 전용 여부 확인',null,true,'통영 ES리조트'],
+    ['이순신공원','11807745',34.8438067,128.4428257,'선택 — 시내 동쪽, 아침에 잠깐',null,true,'통영 이순신공원'],
   ]},
   3: { color:'#2F855A', stops:[
-    ['학동흑진주몽돌해변','25619610',34.7730,128.6524,'남부 먼저, 몽돌 파도소리'],
-    ['거제맹종죽테마공원','17466819',34.9750,128.6480,'대나무숲, 여름에도 선선'],
-    ['매미성','26459481',35.0010,128.6920,'거가대교 근처 — 마지막 코스'],
-    ['민수사 횟집','25117854',35.0080,128.6780,"선택 — '사랑의 이해' 촬영지",'food',true],
+    ['학동흑진주몽돌해변','25619610',34.7746677,128.6415261,'남부 먼저, 몽돌 파도소리',null,false,'거제 학동흑진주몽돌해변'],
+    ['거제맹종죽테마공원','17466819',34.9676778,128.6505266,'대나무숲, 여름에도 선선',null,false,'거제 맹종죽테마파크'],
+    ['매미성','26459481',34.9683077,128.7051196,'거가대교 근처 — 마지막 코스',null,false,'거제 매미성'],
+    ['민수사 횟집','25117854',34.8336112,128.4108559,"선택 — 위치 확인 필요(카카오 등록점은 통영, 드라마 촬영지는 거제)",'food',true,'민수사횟집'],
   ]},
 };
 const TAG = { night:['야간','t-night'], sunset:['일몰','t-sunset'], food:['맛집','t-food'] };
@@ -171,8 +172,9 @@ function build(d){
       <div class="num${badgeCls}">${badge}</div>
       <div class="info"><div class="nm">${s[0]}${tag}</div><div class="memo">${s[4]}</div></div>
       <div class="btns">
-        <a class="b-map" href="https://place.map.kakao.com/${s[1]}">지도</a>
-        <a class="b-nav" href="kakaomap://place?id=${s[1]}">🧭</a>
+        <a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>
+        <a class="b-nvr" href="https://map.naver.com/p/search/${encodeURIComponent(s[7])}">네이버</a>
+        <a class="b-nav" href="kakaomap://route?ep=${s[2]},${s[3]}&by=CAR">내비</a>
       </div>`;
     list.appendChild(row);
   });
@@ -208,7 +210,7 @@ function initMap(d){
     })}).addTo(m).on('click',()=>location.href='https://place.map.kakao.com/'+s[1]);
   });
   L.polyline(pts, {color:cfg.color, weight:3, opacity:.85, dashArray:'6 6'}).addTo(m);
-  const boundPts = cfg.stops.map(s=>[s[2],s[3]]);
+  const boundPts = cfg.stops.filter(inRoute).map(s=>[s[2],s[3]]);
   if (d===1) boundPts.push(HOME);
   m._fitB = L.latLngBounds(boundPts).pad(0.2);
   m.fitBounds(m._fitB);
