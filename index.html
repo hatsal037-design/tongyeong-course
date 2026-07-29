@@ -289,7 +289,7 @@ function render(){
       <div class="btns">
         ${s[1] ? `<a class="b-map" href="https://place.map.kakao.com/${s[1]}">카카오</a>` : ''}
         <a class="b-nvr" href="https://map.naver.com/p/search/${encodeURIComponent(s[7])}">네이버</a>
-        <a class="b-nav" href="javascript:void(0)" onclick="goNavi(${s[2]}, ${s[3]}, `${s[0]}`)">내비</a>
+        <a class="b-nav" href="javascript:void(0)" onclick="goNavi(${s[2]}, ${s[3]}, '${s[0]}')">내비</a>
         <a class="b-note${notes[favKey(s)] ? ' has' : ''}" href="javascript:void(0)" onclick="noteEdit('${favKey(s)}', '${s[0].replace(/'/g,'')}')">📝</a>
       </div>`;
     list.appendChild(row);
