@@ -246,10 +246,17 @@ function goNavi(lat, lng, name){
     + encodeURIComponent(JSON.stringify(param));
 }
 let selKey = null;
+let scrollSel = false;
 function selPlace(k, lat, lng){
   selKey = (selKey === k) ? null : k;
   render();
   if (selKey) map.panTo([lat, lng]);
+}
+function selFromMap(k, cat){
+  curCat = cat;
+  selKey = (selKey === k) ? null : k;
+  scrollSel = true;
+  render();
 }
 function noteEdit(k, name){
   const v = prompt(name + ' 메모', notes[k] || '');
@@ -308,6 +315,11 @@ function render(){
       </div>`;
     list.appendChild(row);
   });
+  if (scrollSel && selKey) {
+    const el = list.querySelector('.stop.sel');
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    scrollSel = false;
+  }
 
   // 지도 — 모든 카테고리 표시, 선택 카테고리만 강조
   layer.clearLayers();
@@ -337,7 +349,7 @@ function render(){
     L.marker([s[2],s[3]], {icon: L.divIcon({
       html:`<div style="width:${size}px;height:${size}px;border-radius:${radius};background:${bg};color:${txtc};font-weight:800;font-size:${fs}px;display:flex;align-items:center;justify-content:center;border:${bd};box-shadow:${sh};opacity:${op}">${label}</div>`,
       className:'', iconSize:[size,size], iconAnchor:[size/2,size/2]})}).addTo(layer)
-      .on('click',()=>{ if(s[1]) location.href='https://place.map.kakao.com/'+s[1]; });
+      .on('click',()=>selFromMap(favKey(s), cat));
   }
 
   // 루트 선 (여행지 탭이면 진하게, 아니면 흐리게)
@@ -356,7 +368,7 @@ function render(){
       <div style="width:30px;height:30px;border-radius:${(cat==='spot')?'50%':'9px'};background:${bg};color:${txtc};font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;border:3.5px solid #fff;box-shadow:0 0 0 3px ${cfg.color}66, 0 3px 8px rgba(0,0,0,.5);">${label}</div>
     </div>`;
     L.marker([s[2],s[3]], {icon: L.divIcon({html, className:'', iconSize:[150,58], iconAnchor:[75,43]}), zIndexOffset:1000}).addTo(layer)
-      .on('click',()=>{ if(s[1]) location.href='https://place.map.kakao.com/'+s[1]; });
+      .on('click',()=>selFromMap(favKey(s), cat));
   }
 
   // 비선택 카테고리 먼저(아래), 선택 카테고리 나중(위), 탭 선택 장소는 이름표와 함께 최상단
