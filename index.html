@@ -229,7 +229,15 @@ const DEFAULT_NOTES = {
 };
 let notes = Object.assign({}, DEFAULT_NOTES, JSON.parse(localStorage.getItem(NKEY) || '{}'));
 function goNavi(lat, lng, name){
-  // 카카오 공식 런처: 좌표 변환 + 카카오내비 앱 실행(목적지 세팅)까지 카카오 서버가 처리
+  // 정식 SDK 경로 (JS키 + 도메인 등록 완료)
+  try {
+    if (window.Kakao && Kakao.Navi) {
+      if (!Kakao.isInitialized()) Kakao.init('b211617b5b05256d1850fde3cbc6cf29');
+      Kakao.Navi.start({ name: name, x: Number(lng), y: Number(lat), coordType: 'wgs84' });
+      return;
+    }
+  } catch(e) {}
+  // SDK 미로드 시 공식 런처로
   const param = {
     destination: { name: name, x: Number(lng), y: Number(lat) },
     option: { coord_type: 'wgs84', vehicle_type: 1, rpoption: 100, route_info: false }
